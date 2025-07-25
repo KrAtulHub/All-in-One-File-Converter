@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IntelliConvert - Modern File Converter</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <h1>All-in-One File Converter</h1>
+        <p>Convert documents, PDFs, and images with a clean, modern interface.</p>
+    </header>
+
+    <main class="container">
+        <!-- UPLOAD VIEW -->
+        <div id="upload-view">
+            <div class="upload-box" id="upload-box">
+                <img src="https://img.icons8.com/fluency/96/upload-to-cloud.png" alt="Upload to cloud icon with a blue cloud and an upward arrow, symbolizing file upload. The icon is centered in a modern, accessible file converter interface." class="upload-icon">
+                <p><strong>Drag & Drop</strong> any file here</p>
+                <p class="separator">or</p>
+                <button type="button" class="btn" id="browse-btn">Browse Files</button>
+                <input type="file" id="file-input" hidden>
+            </div>
+        </div>
+
+        <!-- PROCESSING VIEW -->
+        <div id="processing-view" class="hidden">
+            <div class="file-info-card">
+                <img id="file-icon" src="https://img.icons8.com/plasticine/100/000000/file.png" alt="File Icon"/>
+                <div class="file-details">
+                    <p id="file-name"></p>
+                    <p id="file-size"></p>
+                </div>
+                <button id="cancel-btn" class="btn-cancel" title="Start Over">×</button>
+            </div>
+
+            <!-- CONVERSION PANELS -->
+            <div class="conversion-panels">
+                <!-- Panel 1: Convert TO PDF -->
+                <div class="panel" id="to-pdf-panel">
+                    <h2 class="panel-title">Convert to PDF</h2>
+                    <p class="panel-description">Create a universal PDF from your document or image.</p>
+                    <div class="action-group">
+                        <select class="format-select" id="to-pdf-format" disabled>
+                            <option value="pdf">PDF</option>
+                        </select>
+                        <button class="btn convert-btn" id="to-pdf-btn" disabled>Convert</button>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Convert FROM PDF -->
+                <div class="panel" id="from-pdf-panel">
+                    <h2 class="panel-title">Convert from PDF</h2>
+                    <p class="panel-description">Turn your PDF into an editable format.</p>
+                     <div class="action-group">
+                        <select class="format-select" id="from-pdf-format">
+                            <optgroup label="Documents">
+                                <option value="docx">Word (.docx)</option>
+                                <option value="pptx">PowerPoint (.pptx)</option>
+                                <option value="html">HTML</option>
+                                <option value="txt">Text (.txt)</option>
+                                <option value="md">Markdown (.md)</option>
+                                <option value="epub">EPUB</option>
+                            </optgroup>
+                            <optgroup label="Data Formats">
+                                <option value="xlsx">Excel (.xlsx)</option>
+                                <option value="csv">CSV</option>
+                                <option value="json">JSON</option>
+                            </optgroup>
+                            <optgroup label="Image Formats">
+                                <option value="png">PNG</option>
+                                <option value="jpg">JPG</option>
+                                <option value="webp">WEBP</option>
+                            </optgroup>
+                        </select>
+                        <button class="btn convert-btn" id="from-pdf-btn" disabled>Convert</button>
+                    </div>
+                </div>
+
+                <!-- Panel 3: Image Converter -->
+                <div class="panel" id="image-panel">
+                    <h2 class="panel-title">Image Converter</h2>
+                    <p class="panel-description">Change the format of your image file.</p>
+                     <div class="action-group">
+                        <select class="format-select" id="image-format">
+                            <!-- Options will be populated by JS -->
+                        </select>
+                        <button class="btn convert-btn" id="image-btn" disabled>Convert</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Area -->
+            <div id="result-container" class="result-container hidden"></div>
+        </div>
+    </main>
+
+    <div id="loader-overlay" class="hidden">
+        <div class="loader"></div>
+        <p id="loader-text">Processing...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
