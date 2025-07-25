@@ -1,0 +1,193 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // === DOM ELEMENTS ===
+    const uploadView = document.getElementById('upload-view');
+    const processingView = document.getElementById('processing-view');
+    const uploadBox = document.getElementById('upload-box');
+    const fileInput = document.getElementById('file-input');
+    const browseBtn = document.getElementById('browse-btn');
+    const fileNameEl = document.getElementById('file-name');
+    const fileSizeEl = document.getElementById('file-size');
+    const fileIconEl = document.getElementById('file-icon');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const resultContainer = document.getElementById('result-container');
+    const loaderOverlay = document.getElementById('loader-overlay');
+    const loaderText = document.getElementById('loader-text');
+
+    // Conversion Panels
+    const toPdfPanel = document.getElementById('to-pdf-panel');
+    const fromPdfPanel = document.getElementById('from-pdf-panel');
+    const imagePanel = document.getElementById('image-panel');
+    
+    // Action Buttons
+    const toPdfBtn = document.getElementById('to-pdf-btn');
+    const fromPdfBtn = document.getElementById('from-pdf-btn');
+    const imageBtn = document.getElementById('image-btn');
+
+    // === STATE ===
+    let currentFile = null;
+
+    // === FILE TYPE DEFINITIONS ===
+    const fileTypes = {
+        pdf: { exts: ['pdf'], icon: 'https://img.icons8.com/color/96/000000/pdf-2.png' },
+        word: { exts: ['doc', 'docx'], icon: 'https://img.icons8.com/color/96/000000/ms-word.png' },
+        excel: { exts: ['xls', 'xlsx'], icon: 'https://img.icons8.com/color/96/000000/ms-excel.png' },
+        powerpoint: { exts: ['ppt', 'pptx'], icon: 'https://img.icons8.com/color/96/000000/ms-powerpoint.png' },
+        image: { exts: ['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'webp'], icon: 'https://img.icons8.com/color/96/000000/image-file.png' },
+        text: { exts: ['txt', 'md', 'csv', 'html'], icon: 'https://img.icons8.com/color/96/000000/document.png' }
+    };
+    
+    const imageFormats = {
+        png: ['jpg', 'pdf', 'webp', 'bmp', 'tiff'],
+        jpg: ['png', 'pdf', 'webp', 'bmp', 'tiff'],
+        jpeg: ['png', 'pdf', 'webp', 'bmp', 'tiff'],
+        webp: ['png', 'jpg'],
+        bmp: ['png', 'jpg'],
+        tiff: ['png', 'jpg'],
+    };
+
+    // === EVENT LISTENERS ===
+    browseBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+    cancelBtn.addEventListener('click', resetToInitialState);
+
+    // Drag and Drop
+    uploadBox.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); uploadBox.classList.add('dragover'); });
+    uploadBox.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); uploadBox.classList.remove('dragover'); });
+    uploadBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadBox.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
+    });
+
+    // Conversion button clicks
+    toPdfBtn.addEventListener('click', () => {
+        const format = document.getElementById('to-pdf-format').value;
+        simulateConversion(format);
+    });
+
+    fromPdfBtn.addEventListener('click', () => {
+        const format = document.getElementById('from-pdf-format').value;
+        simulateConversion(format);
+    });
+
+    imageBtn.addEventListener('click', () => {
+        const format = document.getElementById('image-format').value;
+        simulateConversion(format);
+    });
+
+    // === FUNCTIONS ===
+    
+    function getFileType(fileName) {
+        const extension = fileName.split('.').pop().toLowerCase();
+        for (const type in fileTypes) {
+            if (fileTypes[type].exts.includes(extension)) {
+                return { type, extension };
+            }
+        }
+        return { type: 'unknown', extension };
+    }
+
+    function handleFileSelect(file) {
+        if (!file) return;
+        currentFile = file;
+
+        const { type, extension } = getFileType(currentFile.name);
+        
+        if (type === 'unknown') {
+            alert('Sorry, this file type is not supported.');
+            return;
+        }
+
+        // Update UI with file info
+        fileNameEl.textContent = currentFile.name;
+        fileSizeEl.textContent = `${(currentFile.size / 1024 / 1024).toFixed(2)} MB`;
+        fileIconEl.src = fileTypes[type].icon;
+
+        // Configure UI based on file type
+        configureUiForFileType(type, extension);
+
+        // Switch views
+        uploadView.classList.add('hidden');
+        processingView.classList.remove('hidden');
+        resultContainer.classList.add('hidden');
+    }
+
+    function configureUiForFileType(type, extension) {
+        // Reset all panels first
+        [toPdfPanel, fromPdfPanel, imagePanel].forEach(p => {
+            p.classList.add('disabled');
+            p.classList.remove('active');
+        });
+        [toPdfBtn, fromPdfBtn, imageBtn].forEach(b => b.disabled = true);
+        
+        if (type === 'pdf') {
+            fromPdfPanel.classList.remove('disabled');
+            fromPdfPanel.classList.add('active');
+            fromPdfBtn.disabled = false;
+        } else if (type === 'image') {
+            toPdfPanel.classList.remove('disabled');
+            toPdfPanel.classList.add('active');
+            toPdfBtn.disabled = false;
+            
+            imagePanel.classList.remove('disabled');
+            imagePanel.classList.add('active');
+            imageBtn.disabled = false;
+            populateImageFormats(extension);
+        } else if (['word', 'excel', 'powerpoint', 'text'].includes(type)) {
+            toPdfPanel.classList.remove('disabled');
+            toPdfPanel.classList.add('active');
+            toPdfBtn.disabled = false;
+        }
+    }
+    
+    function populateImageFormats(sourceExt) {
+        const formatSelect = document.getElementById('image-format');
+        formatSelect.innerHTML = '';
+        const targetFormats = imageFormats[sourceExt] || [];
+        targetFormats.forEach(format => {
+            const option = document.createElement('option');
+            option.value = format;
+            option.textContent = format.toUpperCase();
+            formatSelect.appendChild(option);
+        });
+    }
+
+    function simulateConversion(format) {
+        showLoader(`Converting to ${format.toUpperCase()}...`);
+        alert(`Simulating Conversion\n\nFile: ${currentFile.name}\nTarget Format: ${format}\n\nNOTE: This is a frontend simulation. A real backend with tools like LibreOffice or ImageMagick would be required for actual conversion.`);
+
+        setTimeout(() => {
+            hideLoader();
+            displayDownloadLink(format);
+        }, 2000);
+    }
+    
+    function displayDownloadLink(format) {
+        const originalFileName = currentFile.name.replace(/\.[^/.]+$/, "");
+        const newFileName = `${originalFileName}.${format}`;
+        resultContainer.innerHTML = `
+            <p class="result-message">File successfully converted!</p>
+            <a href="#" class="btn" download="${newFileName}">Download ${newFileName}</a>
+        `;
+        resultContainer.classList.remove('hidden');
+    }
+
+    function resetToInitialState() {
+        currentFile = null;
+        fileInput.value = '';
+        processingView.classList.add('hidden');
+        uploadView.classList.remove('hidden');
+    }
+
+    function showLoader(text) {
+        loaderText.textContent = text;
+        loaderOverlay.classList.remove('hidden');
+    }
+
+    function hideLoader() {
+        loaderOverlay.classList.add('hidden');
+    }
+});
